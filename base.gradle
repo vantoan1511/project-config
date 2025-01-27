@@ -1,0 +1,38 @@
+def projectVersion = getProjectVersion()
+project.setVersion(projectVersion)
+
+def projectGroupId = project.property("projectGroupId")
+project.setGroup(projectGroupId)
+
+def projectType = project.property("projectType")
+if (projectType == "openapi") {
+    apply from: "${rootDir}/openapi.gradle"
+}
+
+def getProjectVersion() {
+    def versionFile = file("${rootProject.projectDir}/VERSION")
+    if (versionFile == null) {
+        return getProjectVersionDefault()
+    }
+
+    def versionProps = new Properties()
+    versionFile.withReader { reader ->
+        versionProps.load(reader)
+    }
+
+    def version = "${versionProps.major}.${versionProps.minor}.${versionProps.patch}"
+    def versionQualifier = versionProps.qualifier
+    if (versionQualifier == null || versionQualifier == "") {
+        return version
+    }
+    return version + "-" + "${versionQualifier}"
+}
+
+
+def getProjectVersionDefault() {
+    def version = project.getVersion()
+    if (version == null || version == "") {
+        return "1.0.0"
+    }
+    return project.getVersion()
+}

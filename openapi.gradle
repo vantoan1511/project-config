@@ -1,0 +1,49 @@
+openApiGenerate {
+    generatorName = "jaxrs-spec"
+    inputSpec = "${projectDir}/src/main/resources/${rootProject.name}.yaml"
+    outputDir = "${buildDir}/generated"
+
+    apiPackage = project.getGroup().toString() + ".api"
+    modelPackage = project.getGroup().toString() + ".dto"
+    invokerPackage = project.getGroup().toString() + ".client"
+
+    configOptions = [
+            dateLibrary            : "java8",
+            library                : "quarkus",
+            serializationLibrary   : "jackson",
+            useJakartaEe           : "true",
+            useSwaggerAnnotations  : "false",
+            returnResponse         : "true",
+            interfaceOnly          : "true",
+            hideGenerationTimestamp: "true",
+            serializableModel      : "true"
+    ]
+}
+
+tasks.register('compileGeneratedSource', JavaCompile) {
+    source = "${buildDir}/generated/src/gen/java"
+    classpath = sourceSets.main.compileClasspath
+    destinationDirectory = file("${buildDir}/classes")
+}
+
+tasks.register('createJar', Jar) {
+    group = "build"
+    description = "Packages the generated OpenAPI spec into a JAR file"
+
+    from "${buildDir}/classes"
+    archiveBaseName.set("${rootProject.name}")
+    archiveVersion.set(project.getVersion().toString())
+    destinationDirectory.set(file("${buildDir}/libs"))
+}
+
+tasks.build {
+    doLast {
+        delete("${buildDir}/libs/${rootProject.name}.jar")
+    }
+}
+
+tasks.compileGeneratedSource.dependsOn tasks.openApiGenerate
+tasks.createJar.dependsOn tasks.compileGeneratedSource
+tasks.build.dependsOn tasks.compileGeneratedSource
+tasks.jar.dependsOn tasks.compileGeneratedSource, tasks.createJar
+tasks.compileJava.dependsOn tasks.createJar
