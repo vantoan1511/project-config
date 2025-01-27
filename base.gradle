@@ -6,7 +6,7 @@ project.setGroup(projectGroupId)
 
 def projectType = project.property("projectType")
 if (projectType == "openapi") {
-    apply from: "${rootDir}/openapi.gradle"
+    apply from: "https://raw.githubusercontent.com/vantoan1511/project-config/refs/heads/main/openapi.gradle"
 }
 
 def getProjectVersion() {
